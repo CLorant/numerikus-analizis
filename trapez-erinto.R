@@ -59,8 +59,19 @@ midpoint_error_estimate <- function(f, a, b, n) {
     return(error_estimate)
 }
 
+get_ylim <- function(y_vals, pad_factor) {
+    y_min <- min(y_vals)
+    y_max <- max(y_vals)
+    y_padding <- (y_max - y_min) * pad_factor
+    ylim <- c(y_min, y_max + pad_factor)
+}
+
 plot_graph <- function(a, b, n, x0) {
-    curve(f, a, b, col = "red", lwd = 2, main = "Trapézszabály és érintőformula")
+    x_vals <- seq(a, b, length.out = 100)
+    y_vals <- f(x_vals)
+    ylim <- get_ylim(y_vals, 5)
+    
+    curve(f, a, b, col = "red", lwd = 2, main = "Trapézszabály és érintőformula", ylim=ylim)
     grid(nx = NULL, ny = NULL, lty = 2, col = "lightgray", lwd = 2)
     
     x_vals <- seq(a, b, length.out = n + 1)
@@ -86,7 +97,6 @@ plot_graph <- function(a, b, n, x0) {
         paste("Érintőformula utólagos hiba:", round(a_posteriori_error, 6))
     )
     
-    mid_x <- (a + b) / 2
     y_left <- f(a)
     y_right <- f(b)
     

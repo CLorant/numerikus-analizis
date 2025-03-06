@@ -1,5 +1,3 @@
-library(pracma)
-
 f <- function(x) {
     x^3 * sin(x)
 }
@@ -51,17 +49,74 @@ simpson_error_estimate <- function(f, a, b, n) {
 }
 
 simpson_a_posteriori_error <- function(f, a, b, n) {
-    S_n <- simpson_composite(f, a, b, n)
-    S_2n <- simpson_composite(f, a, b, 2 * n)
-    error_estimate <- abs(S_n - S_2n)
+    s_n <- simpson_composite(f, a, b, n)
+    s_2n <- simpson_composite(f, a, b, 2 * n)
+    error_estimate <- abs(s_n - s_2n)
     return(error_estimate)
 }
 
+legendre_poly <- function(n, x) {
+    if (n == 0) {
+        return(rep(1, length(x)))
+    }
+    else if (n == 1) {
+        return(x)
+    }
+    else {
+        p0 <- rep(1, length(x))
+        p1 <- x
+        for (k in 2:n) {
+            pk <- ((2 * k - 1) * x * p1 - (k - 1) * p0) / k
+            p0 <- p1
+            p1 <- pk
+        }
+        return(p1)
+    }
+}
+
+legendre_poly_deriv <- function(n, x) {
+    if (n == 0) {
+        return(rep(0, length(x)))
+    }
+    else {
+        return(n * (x * legendre_poly(n, x) - legendre_poly(n - 1, x)) / (x^2 - 1))
+    }
+}
+
+find_legendre_roots <- function(n, a, b, tol = 1e-10, max_iter = 100) {
+    roots <- numeric(n)
+    for (i in 1:n) {
+        x0 <- cos(pi * (i - 0.25) / (n + 0.5))
+        for (iter in 1:max_iter) {
+            Pn <- legendre_poly(n, x0)
+            Pn_deriv <- legendre_poly_deriv(n, x0)
+            x1 <- x0 - Pn / Pn_deriv
+            if (abs(x1 - x0) < tol) {
+                break
+            }
+            x0 <- x1
+        }
+        roots[i] <- x1
+    }
+    return(roots)
+}
+
+gauss_weights <- function(n, a, b, roots) {
+    weights <- numeric(n)
+    for (i in 1:n) {
+        xi <- roots[i]
+        Pn_deriv <- legendre_poly_deriv(n, xi)
+        weights[i] <- 2 / ((1 - xi^2) * Pn_deriv^2)
+    }
+    return(weights)
+}
+
 gauss_quadrature <- function(f, a, b, n) {
-    nodes_weights <- gaussLegendre(n, a, b)
-    nodes <- nodes_weights$x
-    weights <- nodes_weights$w
-    integral <- sum(weights * f(nodes))
+    roots <- find_legendre_roots(n, a, b)
+    weights <- gauss_weights(n, a, b, roots)
+    
+    nodes <- ((b - a) * roots + (a + b)) / 2
+    integral <- sum(weights * f(nodes)) * (b - a) / 2
     return(integral)
 }
 
@@ -76,8 +131,19 @@ gauss_error_estimate <- function(f, a, b, n) {
     return(error_estimate)
 }
 
+get_ylim <- function(y_vals, pad_factor) {
+    y_min <- min(y_vals)
+    y_max <- max(y_vals)
+    y_padding <- (y_max - y_min) * pad_factor
+    ylim <- c(y_min, y_max + pad_factor)
+}
+
 plot_graph <- function(a, b, n, f, simpson_composite_result, a_posteriori_error, gauss_result, gauss_err) {
-    curve(f, from = a, to = b, col = "black", lwd = 2, main = "Simpson-formula és Gauss-kvadratúra")
+    x_vals <- seq(a, b, length.out = 100)
+    y_vals <- f(x_vals)
+    ylim <- get_ylim(y_vals, 5)
+    
+    curve(f, from = a, to = b, col = "black", lwd = 2, main = "Simpson-formula és Gauss-kvadratúra (Legendre polinommal)", ylim=ylim)
     grid(nx = NULL, ny = NULL, lty = 2, col = "lightgray", lwd = 2)
     
     simpson_x <- seq(a, b, length.out = n + 1)
@@ -91,7 +157,6 @@ plot_graph <- function(a, b, n, f, simpson_composite_result, a_posteriori_error,
     lines(gauss_x, gauss_y, col = "red", lwd = 2, lty = 3)
     points(gauss_x, gauss_y, col = "red", pch = 17)
     
-    mid_x <- (a + b) / 2
     y_left <- f(a)
     y_right <- f(b)
     
@@ -109,7 +174,10 @@ plot_graph <- function(a, b, n, f, simpson_composite_result, a_posteriori_error,
         paste("Simpson utólagos hiba:", round(a_posteriori_error, 6)),
         paste("Gauss-kvadratúra hiba:", round(gauss_err, 6))
         
-    ), col = c("black", "blue", "red", NA, NA), lwd = 2, lty = c(1, 2, 3, NA, NA), pch = c(NA, 16, 17, NA, NA))
+    ),
+    col = c("black", "blue", "red", NA, NA),
+    lwd = 2, lty = c(1, 2, 3, NA, NA),
+    pch = c(NA, 16, 17, NA, NA))
 }
 
 main <- function() {

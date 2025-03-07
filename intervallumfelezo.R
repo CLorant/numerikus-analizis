@@ -21,7 +21,7 @@ get_ymax <- function(a, b) {
 plot_prepare <- function(a, b, y_min, y_max) {
     plot(f, from=a-1, to=b+1, col="blue", lwd=2, main="Intervallumfelező módszer",
          xlab="x-tengely", ylab="y-tengely", ylim=c(y_min, y_max))
-    abline(h=0, col="blue", lwd=2)
+    abline(h=0, col="black", lwd=2)
 }
 
 plot_step <- function(a, b, y_min, segment_height, max_iter) {
@@ -56,16 +56,16 @@ print_step <- function(iter, a, b, c, fa, fc, max_iter) {
         cat("\nEredmények:");
     }
     else if (fa * fc < 0) {
-        cat("Folytatás a [", a, ", ", c, "] intervallumon\n")
+        cat("Folytatás a(z) [", a, ", ", c, "] intervallumon ([a, c])\n")
     }
     else {
-        cat("Folytatás a [", c, ", ", b, "] intervallumon\n")
+        cat("Folytatás a(z) [", c, ", ", b, "] intervallumon ([c, b])\n")
     }
 }
 
 # Intervallumfelező algoritmus
 bisection_method <- function(f, a, b, tol = 1e-10, max_iter = 5) {
-    segment_height = max_iter * 50
+    segment_height = (max_iter + 1) * 50
     y_min <- get_ymin(a, b)
     y_max <- get_ymax(a, b) + segment_height + 100
     plot_prepare(a, b, y_min, y_max)
@@ -91,10 +91,18 @@ bisection_method <- function(f, a, b, tol = 1e-10, max_iter = 5) {
         
         iter <- iter + 1
     }
-    
+
+    # Utolsó lépés kiírása
+    plot_step(a, b, y_min, segment_height, max_iter)
+
+    legend("topleft", legend = c("f(x)", "Vizsgált intervallum", "Gyök"),
+           col = c("blue", "red", "black"), 
+           lwd = 2, lty = c(1, 1, NA), 
+           pch = c(NA, NA, 18))
+
     root = (a + b) / 2
     points(root, 0, pch=18, lwd=3, cex=2.5)
-    
+
     return(root)
 }
 
@@ -125,10 +133,10 @@ main <- function() {
     diff <- abs(exact_root - approx_root)
     diff_percent <- (diff / abs(exact_root)) * 100
     
-    cat("\nKözelítő gyök:\t\t", approx_root)
-    cat("\nPontos gyök:\t\t", exact_root)
-    cat("\nAbszolút eltérés:\t", diff)
-    cat("\nSzázalékos eltérés:\t", diff_percent, "%")
+    cat("\nKözelítő gyök:\t\t", approx_root, "\n")
+    cat("Pontos gyök:\t\t", exact_root, "\n")
+    cat("Abszolút eltérés:\t", diff, "\n")
+    cat("Százalékos eltérés:\t", diff_percent, "%\n")
 }
 
 main()

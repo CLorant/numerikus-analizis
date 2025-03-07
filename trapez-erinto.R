@@ -72,7 +72,6 @@ plot_graph <- function(a, b, n, x0) {
     ylim <- get_ylim(y_vals, 5)
     
     curve(f, a, b, col = "red", lwd = 2, main = "Trapézszabály és érintőformula", ylim=ylim)
-    grid(nx = NULL, ny = NULL, lty = 2, col = "lightgray", lwd = 2)
     
     x_vals <- seq(a, b, length.out = n + 1)
     y_vals <- f(x_vals)

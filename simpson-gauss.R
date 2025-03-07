@@ -5,6 +5,7 @@ f <- function(x) {
 simpson_simple <- function(f, a, b) {
     h <- (b - a) / 2
     integral <- (h / 3) * (f(a) + 4 * f((a + b) / 2) + f(b))
+
     return(integral)
 }
 
@@ -18,6 +19,7 @@ simpson_composite <- function(f, a, b, n) {
     y <- f(x)
     
     integral <- (h / 3) * (y[1] + 4 * sum(y[seq(2, n, by = 2)]) + 2 * sum(y[seq(3, n-1, by = 2)]) + y[n + 1])
+
     return(integral)
 }
 
@@ -27,31 +29,15 @@ fourth_derivative <- function(f, x) {
     if (!is.finite(deriv)) {
         deriv <- 0
     }
+
     return(deriv)
-}
-
-simpson_simple_error_estimate <- function(f, a, b) {
-    h <- (b - a) / 2
-    x_vals <- seq(a, b, length.out = 100)
-    fourth_deriv_vals <- sapply(x_vals, function(x) fourth_derivative(f, x))
-    max_fourth_deriv <- max(abs(fourth_deriv_vals), na.rm = TRUE)
-    error_estimate <- (max_fourth_deriv * (b - a)^5) / 2880
-    return(error_estimate)
-}
-
-simpson_error_estimate <- function(f, a, b, n) {
-    h <- (b - a) / n
-    x_vals <- seq(a, b, length.out = 100)
-    fourth_deriv_vals <- sapply(x_vals, function(x) fourth_derivative(f, x))
-    max_fourth_deriv <- max(abs(fourth_deriv_vals), na.rm = TRUE)
-    error_estimate <- (max_fourth_deriv * (b - a)^5) / (2880 * n^4)
-    return(error_estimate)
 }
 
 simpson_a_posteriori_error <- function(f, a, b, n) {
     s_n <- simpson_composite(f, a, b, n)
     s_2n <- simpson_composite(f, a, b, 2 * n)
     error_estimate <- abs(s_n - s_2n)
+
     return(error_estimate)
 }
 
@@ -70,6 +56,7 @@ legendre_poly <- function(n, x) {
             p0 <- p1
             p1 <- pk
         }
+
         return(p1)
     }
 }
@@ -98,6 +85,7 @@ find_legendre_roots <- function(n, a, b, tol = 1e-10, max_iter = 100) {
         }
         roots[i] <- x1
     }
+
     return(roots)
 }
 
@@ -108,6 +96,7 @@ gauss_weights <- function(n, a, b, roots) {
         Pn_deriv <- legendre_poly_deriv(n, xi)
         weights[i] <- 2 / ((1 - xi^2) * Pn_deriv^2)
     }
+
     return(weights)
 }
 
@@ -117,6 +106,7 @@ gauss_quadrature <- function(f, a, b, n) {
     
     nodes <- ((b - a) * roots + (a + b)) / 2
     integral <- sum(weights * f(nodes)) * (b - a) / 2
+
     return(integral)
 }
 
@@ -128,6 +118,7 @@ gauss_error_estimate <- function(f, a, b, n) {
     })
     max_deriv <- max(abs(deriv_vals), na.rm = TRUE)
     error_estimate <- (max_deriv * (b - a)^(2*n + 3)) / (factorial(2*n + 2))
+
     return(error_estimate)
 }
 
@@ -136,6 +127,8 @@ get_ylim <- function(y_vals, pad_factor) {
     y_max <- max(y_vals)
     y_padding <- (y_max - y_min) * pad_factor
     ylim <- c(y_min, y_max + pad_factor)
+
+    return(ylim)
 }
 
 plot_graph <- function(a, b, n, f, simpson_composite_result, a_posteriori_error, gauss_result, gauss_err) {
@@ -144,15 +137,17 @@ plot_graph <- function(a, b, n, f, simpson_composite_result, a_posteriori_error,
     ylim <- get_ylim(y_vals, 5)
     
     curve(f, from = a, to = b, col = "black", lwd = 2, main = "Simpson-formula és Gauss-kvadratúra (Legendre polinommal)", ylim=ylim)
-    grid(nx = NULL, ny = NULL, lty = 2, col = "lightgray", lwd = 2)
     
     simpson_x <- seq(a, b, length.out = n + 1)
     simpson_y <- f(simpson_x)
     lines(simpson_x, simpson_y, col = "blue", lwd = 2, lty = 2)
     points(seq(a, b, length.out = n + 1), f(seq(a, b, length.out = n + 1)), col = "blue", pch = 16)
     
-    nodes_weights <- gaussLegendre(n, a, b)
-    gauss_x <- nodes_weights$x
+    roots <- find_legendre_roots(n, a, b)
+    weights <- gauss_weights(n, a, b, roots)
+    nodes <- ((b - a) * roots + (a + b)) / 2
+
+    gauss_x <- nodes
     gauss_y <- f(gauss_x)
     lines(gauss_x, gauss_y, col = "red", lwd = 2, lty = 3)
     points(gauss_x, gauss_y, col = "red", pch = 17)

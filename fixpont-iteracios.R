@@ -3,28 +3,32 @@ get_range <- function(y_vals) {
 }
 
 plot_prepare <- function(name, g, x0, epsilon = 1e-6, max_iter = 100) {
-    a <- x0 - 2
-    b <- x0 + 2
-    
+    fixed_point <- x0
+
+    # Intervallum pontosítás a fixpont algoritmus prototípus futtatásával
     for (i in 1:max_iter) {
-        y <- g(x0)
-        if (abs(y - x0) < epsilon) break
-        x0 <- y
+        fixed_point <- g(fixed_point)
+        if (abs(fixed_point - g(fixed_point)) < epsilon) break
     }
     
-    a <- min(a, y - 1)
-    b <- max(b, y + 1)
-
+    zoom_factor <- abs(g(fixed_point) - fixed_point)
+    if (zoom_factor < epsilon) {
+        zoom_factor <- 1 
+    }
+    
+    a <- fixed_point - zoom_factor
+    b <- fixed_point + zoom_factor
+    
     x_vals <- seq(a, b, length.out = 100)
     y_vals <- sapply(x_vals, g)
     range <- get_range(y_vals)
     
-    plot(x_vals, x_vals, type = "l", col = "turquoise", lwd = 2, xlab = "x", ylab = "y", ylim = c(range$y_min, range$y_max),
-         main = paste("Fixpont iteráció | ", name))
-    lines(x_vals, y_vals, col = "green", lwd = 2)
-
+    plot(x_vals, x_vals, type = "l", col = "red", lwd = 2, xlab = "x", ylab = "y", 
+         ylim = c(range$y_min, range$y_max), main = paste("Fixpont iteráció |", name))
+    lines(x_vals, y_vals, col = "blue", lwd = 2)
+    
     rect(a, range$y_min, b, range$y_max, border = "lightgray")
-
+    
     return(range$y_min)
 }
 
@@ -33,6 +37,9 @@ plot_iter <- function(iter, x, y, y_min) {
 
 	lines(c(x, x), c(x, y), col = "black", lwd = 1)
 
+    if (iter == 1) {
+        lines(c(x, x), c(y, y_min), col = "black", lwd = 1, lty = 2)
+    }
     if (iter < 4) {
         lines(c(y, y), c(y, y_min), col = "black", lwd = 1, lty = 2)
     }
@@ -44,9 +51,10 @@ plot_iter <- function(iter, x, y, y_min) {
 plot_finalize <- function(y, y_min) {
 	points(y, y, col = "darkblue", pch = 18, lwd = 3, cex = 2.5)
 	lines(c(y, y), c(y, y_min), col = "darkblue", lty = 2, lwd = 2)
+    text(y, y_min, labels = "xm", pos = 1, col = "darkblue", cex = 0.8)
 
 	legend("topleft", legend = c("y = x", "y = g(x)", "Iterációk", "Fixpont"), 
-			col = c("turquoise", "green", "black", "darkblue"), 
+			col = c("red", "blue", "black", "darkblue"), 
 			lty = c(1, 1, 1, 2), lwd = c(2, 2, 1, 2), pch = c(NA, NA, NA, 18), 
 			pt.cex = c(NA, NA, NA, 2.5))
 }
@@ -104,16 +112,19 @@ read_choice <- function() {
 
 get_demo <- function(choice) {
     demos <- list(
-        "1" = list(name = "Lineáris konvergencia",      g = function(x){ (x + 2) / 3 }, x0 = 0),
-        "2" = list(name = "Négyzetes konvergencia",     g = function(x){ sqrt(x + 1) }, x0 = 1),
-        "3" = list(name = "Oszcillációs konvergencia",  g = function(x){ cos(x) },      x0 = 1)
+        "1" = list( name = "Lineáris konvergencia",
+                    g = function(x){ (x + 2) / 3 }, x0 = 0),
+        "2" = list(name = "Négyzetes konvergencia",
+                    g = function(x){ sqrt(x + 1) }, x0 = 1),
+        "3" = list(name = "Oszcillációs konvergencia",
+                    g = function(x){ cos(x) },      x0 = 1)
     )
 	
     demo <- demos[[as.character(choice)]]
 }
 
-g1 <- function(x) {
-	(x + 2) / 3
+get_function_body <- function(f) {
+    gsub("\\s|[{}]", "", deparse(body(f)))
 }
 
 main <- function() {
@@ -122,9 +133,8 @@ main <- function() {
         demo = get_demo(choice)
 
 		cat("\n=== ",  demo$name ," ===\n")
-		cat("a  = ", demo$a, "\n")
-		cat("b  = ", demo$b, "\n")
-		cat("x0 = ", demo$x0, "\n")
+        cat("g(x) =", get_function_body(demo$g), "\n")
+		cat("x0 =\t", demo$x0, "\n")
 
         result <- fixpoint_iteration(demo$name, demo$g, demo$x0)
 

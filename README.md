@@ -33,3 +33,4 @@
 - Newton-módszer gyökkeresésre
 - Iterációs ábrázolás
 - Pontos gyök és iterációszám megjelenítése
+- **Deriv csomag szükséges: ```install.packages("Deriv")``` (futtatás R konzolon)**

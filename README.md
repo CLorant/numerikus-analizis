@@ -19,7 +19,7 @@
 - Integrálási eredmények
 - Hibabecslések
 
-**intervallumgelezo.R**:
+**intervallumfelezo.R**:
 - Intervallumfelező módszer gyökkeresésre
 - Iterációs ábrázolás
 - Becsült gyök és aktuális gyök összehasonlítása

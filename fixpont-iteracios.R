@@ -21,10 +21,12 @@ plot_prepare <- function(name, g, x0, epsilon = 1e-6, max_iter = 100) {
     
     x_vals <- seq(a, b, length.out = 100)
     y_vals <- sapply(x_vals, g)
+    f_vals <- x_vals - y_vals
     range <- get_range(y_vals)
     
     plot(x_vals, x_vals, type = "l", col = "red", lwd = 2, xlab = "x", ylab = "y", 
          ylim = c(range$y_min, range$y_max), main = paste("Fixpont iteráció |", name))
+    lines(x_vals, f_vals, col = "green", lwd = 2)
     lines(x_vals, y_vals, col = "blue", lwd = 2)
     
     rect(a, range$y_min, b, range$y_max, border = "lightgray")
@@ -53,10 +55,10 @@ plot_finalize <- function(y, y_min) {
 	lines(c(y, y), c(y, y_min), col = "darkblue", lty = 2, lwd = 2)
     text(y, y_min, labels = "xm", pos = 1, col = "darkblue", cex = 0.8)
 
-	legend("topleft", legend = c("y = x", "y = g(x)", "Iterációk", "Fixpont"), 
-			col = c("red", "blue", "black", "darkblue"), 
-			lty = c(1, 1, 1, 2), lwd = c(2, 2, 1, 2), pch = c(NA, NA, NA, 18), 
-			pt.cex = c(NA, NA, NA, 2.5))
+	legend("topleft", legend = c("y = x", "y = g(x)", "y = x - g(x)", "Iterációk", "Fixpont"), 
+			col = c("red", "blue", "green", "black", "darkblue"), 
+			lty = c(1, 1, 1, 1, 2), lwd = c(2, 2, 2, 1, 2), pch = c(NA, NA, NA, NA, 18), 
+			pt.cex = c(NA, NA, NA, NA, 2.5))
 }
 
 print_step <- function(iter, x, y) {

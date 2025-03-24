@@ -103,14 +103,13 @@ read_choice <- function() {
     message("1: Lineáris konvergencia");
     message("2: Négyzetes konvergencia");
     message("3: Oszcillációs konvergencia");
-    message("4: Lassú konvergencia");
     
     choice <- 1
     
     repeat {
         choice <- as.numeric(readline())
         
-        if (!is.na(choice) && choice %in% 1:4) {
+        if (!is.na(choice) && choice %in% 1:3) {
             return(choice)
         }
         
@@ -125,9 +124,7 @@ get_demo <- function(choice) {
         "2" = list(name = "Négyzetes konvergencia",
                     f = function(x){ x^2 - 2 }, x0 = 1),
         "3" = list(name = "Oszcillációs konvergencia",
-                    f = function(x){ cos(x) }, x0 = 1),
-        "4" = list(name = "Lassú konvergencia",
-                    f = function(x){ x^10 - 1 }, x0 = 0.5)
+                    f = function(x){ cos(x) }, x0 = 1)
     )
 	
     demo <- demos[[as.character(choice)]]

@@ -158,6 +158,13 @@ main <- function() {
     repeat {
         choice <- read_choice()
 
+        M = 0
+        N = 0
+        A = 0
+        B = 0
+        C = 0
+        F = 0
+
         if (choice == 1) {
             set.seed(123)
             M <- as.numeric(readline("Blokkok száma (M): "))
@@ -213,7 +220,7 @@ main <- function() {
 
         exact_solution <- solve(Hfull) %*% unlist(F)
         error <- norm(unlist(X_solution) - exact_solution)
-        cat("Relatív hiba:", error/norm(exact_solution), "\n")
+        cat("\nRelatív hiba:", error/norm(exact_solution), "\n")
         
         message("\nÚjra futtatod? i / n")
         if (tolower(readline()) != "i") break
